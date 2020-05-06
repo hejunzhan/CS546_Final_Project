@@ -1,6 +1,7 @@
 const mongoCollections = require('../config/mongoCollections');
 const users = mongoCollections.users;
 const {ObjectId} = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 //传进来的hobbies必须是数组
 async function addUser(firstName, lastName, email, gender, zipcode, age, password, petstype, hobbies) {
@@ -10,7 +11,7 @@ async function addUser(firstName, lastName, email, gender, zipcode, age, passwor
     }
     const userCollection = await users();
 
-    let hashed = hashcode(JSON.stringify(password));
+    let hashed = bcrypt.hash(password, 5);
 
     let newUser = {
         firstName: firstName,
@@ -29,19 +30,7 @@ async function addUser(firstName, lastName, email, gender, zipcode, age, passwor
     const newInsertInformation = await userCollection.insertOne(newUser);
     if (newInsertInformation.insertedCount === 0) throw 'Insert failed!';
     console.log(newInsertInformation.insertedId);
-    const obj = await getUserById(newInsertInformation.insertedId.toString());
-    return obj;
-}
-
-function hashcode(str) {
-    var hash = 0, i, chr, len;
-    if (str.length === 0) return hash;
-    for (i = 0, len = str.length; i < len; i++) {
-        chr = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
+    return await getUserById(newInsertInformation.insertedId.toString());
 }
 
 //addUser("Jianshuo","Yang","123@qq.com","male","07310",
@@ -123,7 +112,7 @@ const obj = {
     hobbies: ["2","2"]
 };
 updateUser("5e94a6afa462eeb398c9d55c", obj);
-密码 usersMoment likes 这三个不能update
+密码 usersMoment likes 这三个不能edit file
 */
 
 async function addMomentToUser(userId, momentId) {
@@ -179,7 +168,7 @@ async function removeLikeFromUser(userId, likeId) {
     const objId2 = ObjectId.createFromHexString(likeId);
 
     let currentUser = await this.getUserById(userId);
-    console.log(currentUser);
+    //console.log(currentUser);
 
     const userCollection = await users();
     const updateInfo = await userCollection.updateOne({_id: objId}, {$pull: {likes: {id: objId2}}});
